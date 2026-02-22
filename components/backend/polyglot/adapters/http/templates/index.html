@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>S3 Upload</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</head>
+<body>
+  <h1>Загрузка файла в S3 (MinIO)</h1>
+
+  <input type="file" id="fileInput" />
+  <button id="uploadBtn">Загрузить</button>
+
+  <div id="status"></div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    uploadBtn.addEventListener("click", async () => {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        statusEl.innerText = "Выберите файл";
+        return;
+      }
+
+      statusEl.innerText = "Запрашиваем ссылку...";
+
+      // 1. Запросить presigned URL
+      const res = await fetch("/api/v1/request-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          content_type: file.type
+        })
+      });
+
+      const { task_id, upload_url } = await res.json();
+
+      console.log('task_id = ', task_id, ' upload_url=', upload_url)
+
+      // 2. Загрузка файла напрямую в S3
+      statusEl.innerText = "Загружаем файл...";
+      console.log('file.type', file.type)
+      const uploadRes = await fetch(upload_url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type
+        },
+        body: file
+      });
+
+      if (!uploadRes.ok) {
+        statusEl.innerText = "Ошибка загрузки";
+        return;
+      }
+
+      // 3. Сообщить backend что загрузка завершена
+      await fetch("/api/v1/upload-complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id })
+      });
+
+      statusEl.innerText = "Файл загружен, задача готова к обработке!";
+    });
+  </script>
+</body>
+</html>
+
+{% endblock %}
