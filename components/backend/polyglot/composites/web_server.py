@@ -4,6 +4,7 @@ from flask import Blueprint, Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from polyglot.adapters.app_db import mappings as _db_mappings  # noqa: F401
 from polyglot.adapters.app_db.settings import Settings as DB_Settings
 from polyglot.adapters.app_db.uow import SqlAlchemyUnitOfWork
 from polyglot.adapters.http.api import create_api

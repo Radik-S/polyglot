@@ -4,6 +4,10 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    HOST: str = '0.0.0.0'
+    PORT: int = 8080
+    IS_DEV_MODE: bool = False
+
     SECRET_KEY_FOR_ENCRYPT_SESSION: str
     # Secure - только HTTPS
     SESSION_COOKIE_SECURE: bool = True,
