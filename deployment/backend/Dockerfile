@@ -35,11 +35,9 @@ RUN apt-get update \
 
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy backend code explicitly (without .env).
 COPY components/backend/alembic.ini /app/alembic.ini
-COPY components/backend/wsgi.py /app/wsgi.py
 COPY components/backend/polyglot /app/polyglot
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "alembic upgrade head && gunicorn --bind 0.0.0.0:8080 wsgi:app"]
+CMD ["sh", "-c", "alembic upgrade head && gunicorn --bind 0.0.0.0:8080 polyglot.composites.web_server:app"]
